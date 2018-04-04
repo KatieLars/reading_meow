@@ -10,26 +10,78 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180330195906) do
+ActiveRecord::Schema.define(version: 20180403090242) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "book_checkouts", force: :cascade do |t|
+    t.integer "book_id"
+    t.integer "checkout_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "action"
+    t.string "condition"
+    t.date "eff_date"
+  end
+
+  create_table "book_requests", force: :cascade do |t|
+    t.string "status"
+    t.datetime "accepted_at"
+    t.date "delivery_date"
+    t.datetime "delivered_at"
+    t.datetime "picked_up_at"
+    t.jsonb "request_data"
+    t.bigint "cat_id"
+    t.bigint "cat_reading_wrangler_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cat_id"], name: "index_book_requests_on_cat_id"
+    t.index ["cat_reading_wrangler_id"], name: "index_book_requests_on_cat_reading_wrangler_id"
+  end
+
+  create_table "books", force: :cascade do |t|
+    t.string "author"
+    t.string "title"
+    t.bigint "library_id"
+    t.string "status"
+    t.string "condition"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["library_id"], name: "index_books_on_library_id"
+  end
 
   create_table "cat_reading_wranglers", force: :cascade do |t|
     t.string "library_card_number"
     t.bigint "user_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "available"
+    t.bigint "library_id"
+    t.index ["library_id"], name: "index_cat_reading_wranglers_on_library_id"
     t.index ["user_id"], name: "index_cat_reading_wranglers_on_user_id"
   end
 
   create_table "cats", force: :cascade do |t|
     t.string "name"
+    t.string "breed"
     t.text "bio"
     t.bigint "user_id"
+    t.boolean "profile_public"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_cats_on_user_id"
+  end
+
+  create_table "checkouts", force: :cascade do |t|
+    t.bigint "book_request_id"
+    t.bigint "library_id"
+    t.date "return_due_date"
+    t.datetime "returned_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["book_request_id"], name: "index_checkouts_on_book_request_id"
+    t.index ["library_id"], name: "index_checkouts_on_library_id"
   end
 
   create_table "contacts", force: :cascade do |t|
@@ -68,10 +120,18 @@ ActiveRecord::Schema.define(version: 20180330195906) do
     t.string "last_name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "admin", default: false
+    t.boolean "active"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  add_foreign_key "book_requests", "cat_reading_wranglers"
+  add_foreign_key "book_requests", "cats"
+  add_foreign_key "books", "libraries"
+  add_foreign_key "cat_reading_wranglers", "libraries"
   add_foreign_key "cat_reading_wranglers", "users"
   add_foreign_key "cats", "users"
+  add_foreign_key "checkouts", "book_requests"
+  add_foreign_key "checkouts", "libraries"
 end
