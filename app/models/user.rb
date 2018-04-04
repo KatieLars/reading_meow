@@ -4,4 +4,6 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable
   has_one :cat
+  has_one :cat_reading_wrangler
+  has_many :contacts, as: :contactable
 end
